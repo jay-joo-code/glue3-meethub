@@ -30,9 +30,12 @@
 	];
 </script>
 
-<footer class="mt-20 border-t border-base-content/10" aria-labelledby="footerHeading">
+<footer
+	class="mt-20 flex justify-center border-t border-base-content/10"
+	aria-labelledby="footerHeading"
+>
 	<h2 id="footerHeading" class="sr-only">Footer</h2>
-	<div class="container relative mx-auto px-6 py-16 sm:py-18 md:py-24 lg:px-16 lg:py-24 xl:px-20">
+	<div class="relative mx-auto w-full max-w-6xl px-6 py-16 sm:py-18 md:py-24 lg:py-24">
 		<div class="xl:grid xl:grid-cols-3 xl:gap-8">
 			<div class="xl:col-span-1">
 				<a class="text-3xl font-bold text-base-content/70" href="/">{APP_NAME}</a>
