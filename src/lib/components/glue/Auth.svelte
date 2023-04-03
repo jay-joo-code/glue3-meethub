@@ -86,7 +86,7 @@
 {:else}
 	<!-- else, show sign in button -->
 	<button>
-		<label for="modal-auth" class="btn-sm btn">Sign in</label>
+		<label for="modal-auth" class="btn-ghost btn">Sign in</label>
 	</button>
 	<input type="checkbox" id="modal-auth" class="modal-toggle" />
 	<label for="modal-auth" class="modal cursor-pointer">

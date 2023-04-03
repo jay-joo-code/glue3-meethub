@@ -10,7 +10,7 @@
 </svelte:head>
 {#if layout === 'mobile-only'}
 	<div class="flex justify-center">
-		<div class="w-full max-w-2xl">
+		<div class="w-full">
 			<slot />
 		</div>
 	</div>

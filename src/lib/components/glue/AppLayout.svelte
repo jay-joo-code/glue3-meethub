@@ -3,6 +3,7 @@
 	import Auth from '$lib/components/glue/Auth.svelte';
 	import MobileDrawerContent from '$lib/components/glue/MobileDrawerContent.svelte';
 	import { APP_NAME, IS_BETA, PUBLIC_NAVS } from '$lib/glue/config';
+	import { format } from 'date-fns';
 	import './app.css';
 	import FeedbackModal from './FeedbackModal.svelte';
 	import TrackWidth from './TrackWidth.svelte';
@@ -27,7 +28,7 @@
 
 			<!-- header -->
 			<div class="sticky top-0 z-30 flex w-full justify-center bg-base-100/95">
-				<div class="w-full max-w-4xl px-4">
+				<div class="w-full max-w-6xl px-4">
 					<div class="navbar px-0">
 						<!-- mobile nav: hamburger -->
 						{#if PUBLIC_NAVS?.length > 0}
@@ -77,7 +78,7 @@
 					</div>
 				</div>
 			</div>
-			<div class="relative w-full max-w-4xl p-4 md:pl-6">
+			<div class="relative w-full">
 				<!-- body content -->
 				<div class="min-h-[82vh]">
 					<slot />
@@ -86,7 +87,7 @@
 				<!-- footer -->
 				<footer class="footer footer-center bg-base-100 py-8 text-base-content">
 					<div>
-						<p>{APP_NAME} © 2022</p>
+						<p>{APP_NAME} © {format(new Date(), 'yyyy')}</p>
 					</div>
 				</footer>
 
