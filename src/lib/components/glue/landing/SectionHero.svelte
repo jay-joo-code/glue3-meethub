@@ -24,7 +24,7 @@
 			<span>They’ll love it for the personalized scheduling experience.</span>
 		</p>
 		<div class="mt-8 flex justify-center">
-			<button class="btn-primary btn-lg btn gap-2 rounded-full px-10"
+			<button class="btn-primary btn gap-2 rounded-full px-10 pr-8"
 				>Get started<span class="text-2xl"><IconRightArrowLong /></span></button
 			>
 		</div>
