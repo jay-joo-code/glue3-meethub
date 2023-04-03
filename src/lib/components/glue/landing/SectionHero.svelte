@@ -14,7 +14,7 @@
 			<span class="text-gradient">to find a time to meet</span>
 		</h2>
 		<p
-			class="mt-6 text-center text-lg leading-normal text-base-content/70 md:text-xl md:leading-normal lg:text-xl lg:leading-9 lg:tracking-tight"
+			class="text-md mt-6 text-center leading-normal text-base-content/70 sm:text-lg md:text-xl md:leading-normal lg:text-xl lg:leading-9 lg:tracking-tight"
 		>
 			<span
 				>You’ll love it for the advanced features to keep you in control of your calendar.
