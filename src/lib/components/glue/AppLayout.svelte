@@ -55,7 +55,7 @@
 								<a href="/" class="btn-ghost btn px-0 text-xl normal-case"
 									>{APP_NAME}
 									{#if IS_BETA}
-										<span class="ml-1.5 text-base-content/60">beta</span>
+										<span class="ml-1.5 mb-0.5 text-sm text-base-content/60">beta</span>
 									{/if}
 								</a>
 							</button>
