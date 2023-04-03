@@ -6,6 +6,7 @@
 	import { format } from 'date-fns';
 	import './app.css';
 	import FeedbackModal from './FeedbackModal.svelte';
+	import Footer from './Footer.svelte';
 	import TrackWidth from './TrackWidth.svelte';
 
 	let topAnchor;
@@ -85,11 +86,7 @@
 				</div>
 
 				<!-- footer -->
-				<footer class="footer footer-center bg-base-100 py-8 text-base-content">
-					<div>
-						<p>{APP_NAME} © {format(new Date(), 'yyyy')}</p>
-					</div>
-				</footer>
+				<Footer />
 
 				<!-- feedback -->
 				<FeedbackModal />

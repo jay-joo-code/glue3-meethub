@@ -39,7 +39,7 @@
 			<div class="mb-10 space-y-4 md:mb-0">
 				<div class="flex items-center">
 					<div
-						class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-base-content"
+						class="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary text-base-100 "
 					>
 						<svelte:component this={feature?.icon} />
 					</div>

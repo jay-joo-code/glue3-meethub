@@ -1,4 +1,5 @@
 <script>
+	import IconRightArrowLong from '$lib/icons/glue/IconRightArrowLong.svelte';
 	import RadialGradient from './RadialGradient.svelte';
 </script>
 
@@ -23,7 +24,9 @@
 			<span>They’ll love it for the personalized scheduling experience.</span>
 		</p>
 		<div class="mt-8 flex justify-center">
-			<button class="btn-primary btn-lg btn rounded-full px-10">Get started free</button>
+			<button class="btn-primary btn-lg btn gap-2 rounded-full px-10"
+				>Get started<span class="text-2xl"><IconRightArrowLong /></span></button
+			>
 		</div>
 	</div>
 </div>
