@@ -6,8 +6,8 @@
 	export let desc: string =
 		'Lorem ipsum dolor, sit amet consectetur adipisicing elit. Quibusdam pariatur sapiente earum nulla? Ducimus sapiente, vero quaerat iste nisi quibusdam.';
 	export let isReversed: boolean = false;
-	export let linkLabel: string = 'Learn more';
-	export let linkHref: string = 'https://savvycal.com';
+	export let linkLabel: string = '';
+	export let linkHref: string = '';
 </script>
 
 <div
