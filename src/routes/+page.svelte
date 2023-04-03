@@ -9,8 +9,8 @@
 
 <PageContainer title="Home">
 	<SectionHero />
-	<SectionBoldStatement />
 	<SectionFeatureList />
+	<SectionBoldStatement />
 	<SectionInfo />
 	<SectionInfo isReversed={true} />
 	<SectionBoldStatement
