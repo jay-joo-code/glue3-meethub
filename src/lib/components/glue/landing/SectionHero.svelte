@@ -1,5 +1,10 @@
+<script>
+	import RadialGradient from './RadialGradient.svelte';
+</script>
+
 <div class="relative mx-auto w-full">
 	<div class="bg-beams absolute inset-0 bottom-10 z-0 bg-bottom bg-no-repeat opacity-70" />
+	<RadialGradient placement="left" />
 	<div class="relative z-10 px-6 py-16 lg:py-28">
 		<h2
 			class="tracking-snug  text-center text-4xl font-black leading-snug sm:text-5xl sm:leading-snug md:text-6xl md:leading-snug lg:text-7xl lg:leading-tight"
