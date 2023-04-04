@@ -14,7 +14,7 @@
 <div class="form-control w-full">
 	{#if label}
 		<label class="label">
-			<span class="label-text">{label}</span>
+			<span class="label-text text-base-content/80">{label}</span>
 		</label>
 	{/if}
 	<input

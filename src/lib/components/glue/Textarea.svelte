@@ -10,7 +10,11 @@
 </script>
 
 <div class="form-control">
-	<label class="label" for={name}>{label}</label>
+	{#if label}
+		<label class="label">
+			<span class="label-text text-base-content/80">{label}</span>
+		</label>
+	{/if}
 	<textarea
 		bind:value
 		on:blur

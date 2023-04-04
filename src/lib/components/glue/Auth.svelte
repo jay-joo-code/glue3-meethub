@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { APP_NAME, IS_ENFORCE_CORNELL_EMAIL, IS_GOOGLE_AUTH_ONLY } from '$lib/glue/config';
+	import { APP_NAME, IS_ENFORCE_CORNELL_EMAIL } from '$lib/glue/config';
 	import { supabase } from '$lib/glue/supabaseClient';
 	import IconGoogle from '$lib/icons/glue/IconGoogle.svelte';
 	import IconLogout from '$lib/icons/glue/IconLogout.svelte';
@@ -14,7 +14,6 @@
 			icon: IconMessage
 		}
 	];
-	let isForceCornellModalOpen = false;
 
 	const signInWithGoogle = async () => {
 		await supabase.auth.signInWithOAuth({
@@ -26,31 +25,54 @@
 		await supabase.auth.signOut();
 		goto('/');
 	};
-</script>
 
-<!-- modal: force cornell auth -->
-<div class={`modal ${isForceCornellModalOpen && 'modal-open'}`} id="modal-force-cornell">
-	<div class="modal-box w-11/12 max-w-sm">
-		<h3 class="text-lg font-bold">Sign in with a @cornell.edu account</h3>
-		<p class="py-4">
-			You must sign in with a <span class="underline decoration-primary underline-offset-2"
-				>Cornell email</span
-			>
-			to use {APP_NAME}.
-		</p>
-		<div class="flex justify-end space-x-2">
-			<button
-				class="btn-ghost btn"
-				on:click={() => {
-					isForceCornellModalOpen = false;
-				}}>Close</button
-			>
-			<button type="button" class="btn-primary btn" on:click={signInWithGoogle}
-				>Sign in again</button
-			>
-		</div>
-	</div>
-</div>
+	let state: 'signin' | 'register' = 'register';
+
+	const toggleState = () => {
+		if (state === 'signin') state = 'register';
+		else state = 'signin';
+	};
+
+	let email: string;
+	let password: string;
+	let authError: string;
+
+	const signUpEmailPwd = async () => {
+		let { data, error } = await supabase.auth.signUp({
+			email,
+			password
+		});
+		console.log('data, error', data, error);
+
+		if (error) {
+			authError = error;
+		} else {
+			goto('/');
+		}
+	};
+
+	const loginEmailPwd = async () => {
+		let { data, error } = await supabase.auth.signInWithPassword({
+			email,
+			password
+		});
+		console.log('data, error', data, error);
+
+		if (error) {
+			authError = error;
+		} else {
+			goto('/');
+		}
+	};
+
+	const handleEmailPwdSubmit = async () => {
+		if (state === 'register') {
+			signUpEmailPwd();
+		} else {
+			loginEmailPwd();
+		}
+	};
+</script>
 
 {#if $page?.data?.session}
 	<!-- if authenticated, show avatar -->
@@ -88,38 +110,90 @@
 	<button>
 		<label for="modal-auth" class="btn-ghost btn">Sign in</label>
 	</button>
+
+	<!-- sign in modal -->
 	<input type="checkbox" id="modal-auth" class="modal-toggle" />
 	<label for="modal-auth" class="modal cursor-pointer">
 		<label class="modal-box relative w-11/12 max-w-sm" for="">
 			<div class="flex flex-col gap-3">
-				<h3 class="mb-2 p-0 text-xl font-medium text-gray-900 dark:text-white">
-					Sign in
-					{#if IS_ENFORCE_CORNELL_EMAIL}
+				{#if IS_ENFORCE_CORNELL_EMAIL}
+					<!-- force Cornell auth -->
+					<h3 class="p-0 text-xl font-medium">
+						Sign in
 						<span
 							>with your <span class="underline decoration-primary underline-offset-2"
-								>Cornell email</span
+								>Cornell&nbsp;email</span
 							></span
 						>
-					{:else}
-						<span>to {APP_NAME}</span>
-					{/if}
-				</h3>
-				<p class="mb-2">
-					Access all of the features by signing in and getting started with {APP_NAME}.
-				</p>
-				{#if IS_ENFORCE_CORNELL_EMAIL}
-					<p class="mb-2">
-						You must sign in with your <span class="underline decoration-primary underline-offset-2"
-							>Cornell email</span
-						>
-						to sign into {APP_NAME}!
+					</h3>
+					<p class="mb-2 text-sm text-base-content/80">
+						Access all of the features by signing in and getting started with {APP_NAME}.
 					</p>
+					<p class="mb-2 text-sm text-base-content/80">
+						You must sign in with your Cornell email to sign into {APP_NAME}!
+					</p>
+					<button type="button" class="btn-primary btn mt-2 gap-2" on:click={signInWithGoogle}
+						><IconGoogle /> Sign in with {IS_ENFORCE_CORNELL_EMAIL
+							? 'Cornell email'
+							: 'Google'}</button
+					>
+				{:else}
+					<!-- email pwd auth -->
+					<form on:submit={handleEmailPwdSubmit}>
+						<div class="flex flex-col gap-3">
+							<h3 class="p-0 text-xl font-medium">
+								{state === 'signin' ? 'Sign in' : 'Create an account'}
+							</h3>
+							<div class="form-control">
+								<label class="label" for="email">Email</label>
+								<input
+									class="input-bordered input w-full max-w-xs"
+									type="email"
+									name="email"
+									placeholder="name@company.com"
+									required
+									bind:value={email}
+								/>
+							</div>
+							<div class="form-control">
+								<label class="label" for="password">Password</label>
+								<input
+									class="input-bordered input w-full max-w-xs"
+									type="password"
+									name="password"
+									placeholder=""
+									required
+									bind:value={password}
+								/>
+							</div>
+							<div class="flex items-center justify-between">
+								{#if state === 'signin'}
+									<div>
+										<a
+											href="/"
+											class="ml-auto text-sm text-blue-700 hover:underline dark:text-blue-500"
+											>Lost password?</a
+										>
+									</div>
+								{/if}
+							</div>
+							{#if authError}
+								<p class="text-sm text-error">{authError}</p>
+							{/if}
+							<button type="submit" class="btn-primary btn-block btn"
+								>{state === 'signin' ? 'Sign in' : 'Create account'}</button
+							>
+							<div class="text-sm font-medium text-gray-500 dark:text-gray-300">
+								{state === 'signin' ? 'Not registered?' : 'Already have an account?'}
+								<button
+									class="text-blue-700 hover:underline dark:text-blue-500"
+									on:click={toggleState}
+									>{state === 'signin' ? 'Create account' : 'Sign in'}
+								</button>
+							</div>
+						</div>
+					</form>
 				{/if}
-				<button type="button" class="btn-primary btn gap-2" on:click={signInWithGoogle}
-					><IconGoogle /> Sign in with {IS_ENFORCE_CORNELL_EMAIL
-						? 'Cornell email'
-						: 'Google'}</button
-				>
 			</div>
 		</label>
 	</label>
