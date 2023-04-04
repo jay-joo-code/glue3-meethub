@@ -1,19 +1,11 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { page } from '$app/stores';
-	import { APP_NAME, IS_ENFORCE_CORNELL_EMAIL } from '$lib/glue/config';
+	import { APP_NAME, IS_ENFORCE_CORNELL_EMAIL, PRIVATE_NAVS } from '$lib/glue/config';
 	import { supabase } from '$lib/glue/supabaseClient';
 	import IconGoogle from '$lib/icons/glue/IconGoogle.svelte';
 	import IconLogout from '$lib/icons/glue/IconLogout.svelte';
 	import IconMessage from '$lib/icons/glue/IconMessage.svelte';
-
-	const PRIVATE_NAVS = [
-		{
-			label: 'Messages',
-			path: '/chatrooms',
-			icon: IconMessage
-		}
-	];
 
 	const signInWithGoogle = async () => {
 		await supabase.auth.signInWithOAuth({

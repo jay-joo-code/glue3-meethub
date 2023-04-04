@@ -8,5 +8,16 @@
 </script>
 
 <PageContainer title="Home">
-	<div>Home</div>
+	<SectionHero />
+	<SectionFeatureList />
+	<SectionBoldStatement />
+	<SectionInfo />
+	<SectionInfo isReversed={true} />
+	<SectionBoldStatement
+		overline="Get started"
+		heading="Ready to get started with our calendars?"
+		desc="Lorem ipsum dolor sit amet consectetur adipisicing elit. Eius nisi debitis in autem iure distinctio omnis sapiente laboriosam id ipsa!"
+		linkLabel="Get started"
+		linkHref="/"
+	/>
 </PageContainer>
