@@ -3,7 +3,7 @@
 </script>
 
 <span
-	class="bg-radial-gradient pointer-events-none absolute -top-6 hidden h-[500px] w-[500px] opacity-[.15] lg:inline-flex {placement ===
+	class="bg-radial-gradient pointer-events-none absolute -top-6 hidden h-[500px] w-[500px] opacity-[.25] lg:inline-flex {placement ===
 	'right'
 		? 'right-[-20%] xl:right-0'
 		: 'left-[-20%] xl:left-0'}"
