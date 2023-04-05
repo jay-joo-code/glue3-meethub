@@ -35,13 +35,17 @@
 	const endDrag = () => {
 		if (isDragging) {
 			isDragging = false;
+
 			const lowerTimestamp = Math.min(Number(dragStartTimestamp), Number(dragEndTimestamp));
 			const higherTimestamp = Math.max(Number(dragStartTimestamp), Number(dragEndTimestamp));
-
 			const timestampsBetween = [
-				...getIncrementedTimestamps(String(lowerTimestamp), String(higherTimestamp)),
-				String(higherTimestamp)
+				...getIncrementedTimestamps(
+					String(lowerTimestamp).padStart(4, '0'),
+					String(higherTimestamp).padStart(4, '0')
+				),
+				String(higherTimestamp).padStart(4, '0')
 			];
+
 			const selectedDateStrings = timestampsBetween?.map((timestamp) =>
 				applyTimestampToDate(dragDate, timestamp).toISOString()
 			);
