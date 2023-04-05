@@ -1,8 +1,6 @@
 <script lang="ts">
-	import { pb, currentUser } from '$lib/glue/pocketbase';
-	import IconRightArrowLong from '$lib/icons/glue/IconRightArrowLong.svelte';
+	import { currentUser, pb } from '$lib/glue/pocketbase';
 	import getOtherUser from '$lib/util/glue/chat/getOtherUser';
-	import dynamicAgo from '$lib/util/glue/dynamicAgo';
 	import { onDestroy, onMount } from 'svelte';
 
 	export let activeChatroomId;
