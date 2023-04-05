@@ -71,10 +71,11 @@
 	const signOut = () => {
 		delete $entryConfig[event?.hash_id];
 		$entryConfig = { ...$entryConfig };
+		myAvailability = new Set();
 	};
 
 	const saveEntry = async (dates) => {
-		const { data, error } = await supabase
+		await supabase
 			.from('entry')
 			.update({ times: Array.from(dates) })
 			.eq('id', entryId);
