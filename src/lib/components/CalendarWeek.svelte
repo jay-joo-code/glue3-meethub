@@ -11,6 +11,7 @@
 	export let earliestTime = '0900';
 	export let latestTime = '1700';
 	export let selected = new Set();
+	export let onEndDrag: (dates) => void;
 
 	let timestamps = getIncrementedTimestamps(earliestTime, latestTime);
 	let hours = generateHourlyTimestamps(earliestTime, latestTime);
@@ -32,29 +33,33 @@
 	};
 
 	const endDrag = () => {
-		isDragging = false;
-		const lowerTimestamp = Math.min(Number(dragStartTimestamp), Number(dragEndTimestamp));
-		const higherTimestamp = Math.max(Number(dragStartTimestamp), Number(dragEndTimestamp));
+		if (isDragging) {
+			isDragging = false;
+			const lowerTimestamp = Math.min(Number(dragStartTimestamp), Number(dragEndTimestamp));
+			const higherTimestamp = Math.max(Number(dragStartTimestamp), Number(dragEndTimestamp));
 
-		const timestampsBetween = [
-			...getIncrementedTimestamps(String(lowerTimestamp), String(higherTimestamp)),
-			String(higherTimestamp)
-		];
-		const selectedDateStrings = timestampsBetween?.map((timestamp) =>
-			applyTimestampToDate(dragDate, timestamp).toISOString()
-		);
-		for (const item of selectedDateStrings) {
-			if (dragType === 'add') {
-				selected.add(item);
-			} else {
-				selected.delete(item);
+			const timestampsBetween = [
+				...getIncrementedTimestamps(String(lowerTimestamp), String(higherTimestamp)),
+				String(higherTimestamp)
+			];
+			const selectedDateStrings = timestampsBetween?.map((timestamp) =>
+				applyTimestampToDate(dragDate, timestamp).toISOString()
+			);
+			for (const item of selectedDateStrings) {
+				if (dragType === 'add') {
+					selected.add(item);
+				} else {
+					selected.delete(item);
+				}
 			}
-		}
 
-		selected = new Set(selected);
+			selected = new Set(selected);
+
+			onEndDrag(selected);
+		}
 	};
 
-	const bgColorClass = (day, timestamp, dragEndTimestamp, isDragging) => {
+	const bgColorClass = (day, timestamp, dragEndTimestamp, isDragging, selected) => {
 		if (isDragging && isDragSelected(day, timestamp, dragEndTimestamp)) {
 			if (dragType === 'add') {
 				return 'bg-base-content/30';
@@ -93,7 +98,7 @@
 						{col_idx === 0 ? 'border-l' : ''}
             {(row_idx - 1) % 4 === 0 ? 'border-b-dashed' : ''}
             {row_idx % 2 === 0 ? 'border-b-none' : ''}
-            {bgColorClass(day, timestamp, dragEndTimestamp, isDragging)}
+            {bgColorClass(day, timestamp, dragEndTimestamp, isDragging, selected)}
             "
 					on:mousedown={() => {
 						isDragging = true;

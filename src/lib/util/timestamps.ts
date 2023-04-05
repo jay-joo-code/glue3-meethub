@@ -73,6 +73,8 @@ export function getIncrementedTimestamps(earliesttime, latesttime) {
 }
 
 export function applyTimestampToDate(date, timestamp): Date {
+	if (!date) return date;
+
 	const hour = parseInt(timestamp.substring(0, 2));
 	const minute = parseInt(timestamp.substring(2));
 	date.setHours(hour, minute, 0, 0);
