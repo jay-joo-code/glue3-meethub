@@ -3,6 +3,7 @@
 
 	export let title = '';
 	export let layout: 'mobile-only' | 'aside-main' = 'mobile-only';
+	export let noPadding = false;
 </script>
 
 <svelte:head>
@@ -10,7 +11,7 @@
 </svelte:head>
 {#if layout === 'mobile-only'}
 	<div class="flex justify-center">
-		<div class="w-full">
+		<div class="w-full {!noPadding && 'px-4'}">
 			<slot />
 		</div>
 	</div>

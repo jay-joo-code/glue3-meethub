@@ -46,7 +46,7 @@
 
 {#if !hideRouteIds?.includes($page.route?.id)}
 	<div class="fixed left-0 right-0 bottom-0 flex justify-center">
-		<div class="flex w-full max-w-4xl justify-end pb-6 pr-4 md:pr-0">
+		<div class="flex w-full max-w-6xl justify-end pb-6 pr-4 md:pr-0">
 			<div class="">
 				<label for="modal-feedback" class="btn-primary btn-sm btn">Thoughts on {APP_NAME}?</label>
 			</div>

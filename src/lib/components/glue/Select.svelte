@@ -1,14 +1,13 @@
 <script lang="ts">
-	import type { HTMLInputAttributes } from 'svelte/elements';
-	interface $$Props extends HTMLInputAttributes {
+	import type { HTMLSelectAttributes } from 'svelte/elements';
+	interface $$Props extends HTMLSelectAttributes {
 		label?: string;
-		name?: string;
 		error?: string;
 	}
 	export let label: string = '';
-	export let name: string = '';
 	export let value: string = '';
 	export let error: string = '';
+	export let options: { value: string; label: string }[] = [];
 </script>
 
 <div class="{$$props.class} form-control w-full">
@@ -17,7 +16,7 @@
 			<span class="label-text text-base-content/80">{label}</span>
 		</label>
 	{/if}
-	<input
+	<select
 		bind:value
 		on:blur
 		on:change
@@ -32,11 +31,13 @@
 		on:mouseleave
 		on:mouseover
 		on:paste
-		type="text"
 		{...$$restProps}
-		{name}
-		class={`input-bordered input w-full ${error && 'input-error'}`}
-	/>
+		class={`select-bordered select w-full max-w-xs ${error && 'input-error'}`}
+	>
+		{#each options as { value, label }}
+			<option {value}>{label}</option>
+		{/each}
+	</select>
 	{#if error}
 		<label class="label">
 			<span class="label-text-alt text-error">{error}</span>

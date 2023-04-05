@@ -145,7 +145,7 @@
 
 						<!-- bottom: date -->
 						<p class="w-full truncate text-xs text-base-content/70">
-							{dynamicAgo({ date: new Date(chatroom?.latestChat?.created) })}
+							<!-- {dynamicAgo({ date: new Date(chatroom?.latestChat?.created) })} -->
 						</p>
 					</div>
 				</div>
