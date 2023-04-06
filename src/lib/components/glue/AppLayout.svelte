@@ -30,7 +30,7 @@
 			<!-- header -->
 			<div class="sticky top-0 z-30 flex w-full justify-center bg-base-100/95">
 				<div class="w-full max-w-6xl px-4">
-					<div class="navbar px-0">
+					<div class="navbar min-h-[unset] px-0 py-3">
 						<!-- mobile nav: hamburger -->
 						{#if PUBLIC_NAVS?.length > 0}
 							<div class="flex-none md:hidden">
@@ -54,7 +54,7 @@
 						<!-- app name -->
 						<div>
 							<button>
-								<a href="/" class="btn-ghost btn px-0 text-xl normal-case"
+								<a href="/" class="btn-ghost btn-sm btn px-0 text-xl normal-case"
 									>{APP_NAME}
 									{#if IS_BETA}
 										<span class="ml-1.5 mb-0.5 text-sm text-base-content/60">beta</span>

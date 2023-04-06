@@ -100,7 +100,7 @@
 {:else}
 	<!-- else, show sign in button -->
 	<button>
-		<label for="modal-auth" class="btn-ghost btn">Sign in</label>
+		<label for="modal-auth" class="btn-ghost btn-sm btn md:btn-md">Sign in</label>
 	</button>
 
 	<!-- sign in modal -->
