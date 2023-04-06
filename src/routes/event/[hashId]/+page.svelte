@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import CalendarWeek from '$lib/components/CalendarWeek.svelte';
 	import PageContainer from '$lib/components/glue/PageContainer.svelte';
@@ -15,6 +16,7 @@
 	let manualName = '';
 
 	$: event = $page?.data?.event;
+	$: groupEntries = $page?.data?.groupEntries;
 	$: entryId = $entryConfig[event?.hash_id];
 	$: myAvailabilityMethod = entry ? entry?.variant : 'unset';
 	$: {
@@ -79,6 +81,7 @@
 			.from('entry')
 			.update({ times: Array.from(dates) })
 			.eq('id', entryId);
+		invalidateAll();
 	};
 </script>
 
@@ -172,6 +175,8 @@
 							?.sort((a, b) => a.getTime() - b.getTime())}
 						earliestTime={event?.earliest_time}
 						latestTime={event?.latest_time}
+						mode="display"
+						{groupEntries}
 					/>
 				</div>
 			</div>

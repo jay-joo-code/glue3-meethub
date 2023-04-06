@@ -1,4 +1,5 @@
 <script lang="ts">
+	import countTimes from '$lib/util/countTimes';
 	import {
 		applyTimestampToDate,
 		displayTimeString,
@@ -11,7 +12,9 @@
 	export let earliestTime = '0900';
 	export let latestTime = '1700';
 	export let selected = new Set();
-	export let onEndDrag: (dates) => void;
+	export let onEndDrag: (dates) => void = () => {};
+	export let mode: 'edit' | 'display' = 'edit';
+	export let groupEntries = [];
 
 	let timestamps = getIncrementedTimestamps(earliestTime, latestTime);
 	let hours = generateHourlyTimestamps(earliestTime, latestTime);
@@ -20,6 +23,15 @@
 	let dragDate;
 	let dragStartTimestamp;
 	let dragEndTimestamp;
+	let viewingDateString;
+
+	$: [timesCounter, maxCount] = countTimes(groupEntries) || [{}, 0];
+	$: allNames = groupEntries.map((entry) => entry.name);
+	$: availableNames = timesCounter[viewingDateString] || [];
+	$: unavailableNames = allNames.filter((name) => !availableNames?.includes(name));
+
+	// $: if (mode === 'display')
+	// 	console.log('log', groupEntries, timesCounter, maxCount, availableNames);
 
 	const isDragSelected = (date, timestamp: string, dragEndTimestamp) => {
 		const lowerTimestamp = Math.min(Number(dragStartTimestamp), Number(dragEndTimestamp));
@@ -33,7 +45,7 @@
 	};
 
 	const endDrag = () => {
-		if (isDragging) {
+		if (mode === 'edit' && isDragging) {
 			isDragging = false;
 
 			const lowerTimestamp = Math.min(Number(dragStartTimestamp), Number(dragEndTimestamp));
@@ -63,17 +75,49 @@
 		}
 	};
 
-	const bgColorClass = (day, timestamp, dragEndTimestamp, isDragging, selected) => {
-		if (isDragging && isDragSelected(day, timestamp, dragEndTimestamp)) {
-			if (dragType === 'add') {
-				return 'bg-base-content/30';
-			} else {
-				return 'bg-base-100';
+	const bgColorClass = (
+		day,
+		timestamp,
+		dragEndTimestamp,
+		isDragging,
+		selected,
+		timesCounter,
+		maxCount
+	) => {
+		if (mode === 'edit') {
+			if (isDragging && isDragSelected(day, timestamp, dragEndTimestamp)) {
+				if (dragType === 'add') {
+					return 'bg-base-content/30';
+				} else {
+					return 'bg-base-100';
+				}
+			} else if (selected.has(applyTimestampToDate(day, timestamp).toISOString())) {
+				return 'bg-primary/70';
 			}
-		} else if (selected.has(applyTimestampToDate(day, timestamp).toISOString())) {
-			return 'bg-primary/70';
+			return '';
+		} else {
+			const date = applyTimestampToDate(day, timestamp).toISOString();
+			const count = timesCounter[date]?.length || 0;
+			if (count === 0) {
+				return 'bg-base-100';
+			} else {
+				return 'bg-primary';
+			}
 		}
-		return '';
+	};
+
+	const getOpacity = (day, timestamp, timesCounter, maxCount) => {
+		if (mode === 'edit') {
+			return 1;
+		}
+		const date = applyTimestampToDate(day, timestamp).toISOString();
+		const count = timesCounter[date]?.length || 0;
+
+		if (count === 0) {
+			return 1;
+		}
+		const opacity = (count / maxCount).toFixed(2);
+		return opacity;
 	};
 </script>
 
@@ -96,32 +140,76 @@
 
 		{#each timestamps as timestamp, row_idx}
 			{#each dates as day, col_idx}
-				<button
-					class="hour h-[0.7rem] border-b border-r border-base-content/20
+				<div class="dropdown">
+					<!-- svelte-ignore a11y-no-noninteractive-tabindex -->
+					<!-- svelte-ignore a11y-click-events-have-key-events -->
+					<label
+						tabindex="0"
+						style="--opacity: {getOpacity(day, timestamp, timesCounter, maxCount)}"
+						class="tailwind-opacity-is-fking-buggy hour block h-[0.7rem] border-b border-r border-base-content/20
             {row_idx === 0 ? 'border-t' : ''}
 						{col_idx === 0 ? 'border-l' : ''}
             {(row_idx - 1) % 4 === 0 ? 'border-b-dashed' : ''}
             {row_idx % 2 === 0 ? 'border-b-none' : ''}
-            {bgColorClass(day, timestamp, dragEndTimestamp, isDragging, selected)}
+            {bgColorClass(
+							day,
+							timestamp,
+							dragEndTimestamp,
+							isDragging,
+							selected,
+							timesCounter,
+							maxCount
+						)}
             "
-					on:mousedown={() => {
-						isDragging = true;
-						if (selected.has(applyTimestampToDate(day, timestamp).toISOString())) {
-							dragType = 'remove';
-						} else {
-							dragType = 'add';
-						}
-						dragDate = day;
-						dragStartTimestamp = timestamp;
-						dragEndTimestamp = timestamp;
-					}}
-					on:mouseenter={() => {
-						if (isDragging) {
-							dragEndTimestamp = timestamp;
-						}
-					}}
-					on:mouseup={endDrag}
-				/>
+						on:click={() => {
+							if (mode === 'display') {
+								viewingDateString = applyTimestampToDate(day, timestamp)?.toISOString();
+							}
+						}}
+						on:mousedown={() => {
+							if (mode === 'edit') {
+								isDragging = true;
+								if (selected.has(applyTimestampToDate(day, timestamp).toISOString())) {
+									dragType = 'remove';
+								} else {
+									dragType = 'add';
+								}
+								dragDate = day;
+								dragStartTimestamp = timestamp;
+								dragEndTimestamp = timestamp;
+							}
+						}}
+						on:mouseenter={() => {
+							if (mode === 'edit' && isDragging) {
+								dragEndTimestamp = timestamp;
+							}
+						}}
+						on:mouseup={endDrag}
+					/>
+					{#if mode === 'display'}
+						<ul tabindex="0" class="dropdown-content rounded bg-base-200 p-2 shadow-xl">
+							<div>
+								<div class="flex items-center space-x-1">
+									<div class="h-2 w-2 rounded-full bg-success" />
+									<p class="text-sm font-semibold">Available</p>
+								</div>
+								{#each availableNames as name}
+									<p class="mt-1 ml-3 text-xs font-medium text-base-content/80">{name}</p>
+								{/each}
+							</div>
+
+							<div class="mt-2">
+								<div class="flex items-center space-x-1">
+									<div class="h-2 w-2 rounded-full bg-error" />
+									<p class="text-sm font-semibold">Unavailable</p>
+								</div>
+								{#each unavailableNames as name}
+									<p class="mt-1 ml-3 text-xs font-medium text-base-content/80">{name}</p>
+								{/each}
+							</div>
+						</ul>
+					{/if}
+				</div>
 			{/each}
 		{/each}
 	</div>
@@ -150,5 +238,9 @@
 
 	.border-b-none {
 		border-style: solid solid none solid;
+	}
+
+	.tailwind-opacity-is-fking-buggy {
+		opacity: var(--opacity);
 	}
 </style>
