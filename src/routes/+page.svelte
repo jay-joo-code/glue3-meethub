@@ -13,8 +13,6 @@
 	let latestTime: string = '1700';
 	let selectedDates = [];
 
-	$: console.log('selectedDates', selectedDates);
-
 	const createEvent = async () => {
 		isCreateEventLoading = true;
 
