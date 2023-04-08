@@ -7,6 +7,7 @@
 	import { generateTimeStamps } from '$lib/util/timestamps';
 	import { goto } from '$app/navigation';
 
+	let isCreateEventLoading = false;
 	let name: string = '';
 	let earliestTime: string = '0900';
 	let latestTime: string = '1700';
@@ -15,6 +16,8 @@
 	$: console.log('selectedDates', selectedDates);
 
 	const createEvent = async () => {
+		isCreateEventLoading = true;
+
 		const { data, error } = await supabase
 			.from('event')
 			.insert([
@@ -27,6 +30,8 @@
 		} else {
 			goto(`/event/${data[0].hash_id}`);
 		}
+
+		isCreateEventLoading = false;
 	};
 </script>
 
@@ -51,7 +56,7 @@
 				bind:value={latestTime}
 				options={generateTimeStamps()}
 			/>
-			<button class="btn-primary btn mt-8">Create event</button>
+			<button class="btn-primary btn mt-8 {isCreateEventLoading && 'loading'}">Create event</button>
 		</form>
 	</div>
 </PageContainer>
