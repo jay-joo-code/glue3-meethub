@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 
 export function generateTimeStamps() {
 	const timeStamps = [];
@@ -56,10 +56,10 @@ export function displayTimeString(timeStr) {
 	return format(dateObj, 'haaa');
 }
 
-export function getIncrementedTimestamps(earliesttime, latesttime) {
+export function getIncrementedTimestamps(earliestTime, latestTime) {
 	const timestamps = [];
-	let currenttime = earliesttime;
-	while (currenttime < latesttime) {
+	let currenttime = earliestTime;
+	while (currenttime < latestTime) {
 		timestamps.push(currenttime);
 		const hour = parseInt(currenttime.substring(0, 2));
 		const minute = parseInt(currenttime.substring(2));
@@ -79,4 +79,39 @@ export function applyTimestampToDate(date, timestamp): Date {
 	const minute = parseInt(timestamp.substring(2));
 	date.setHours(hour, minute, 0, 0);
 	return date;
+}
+
+export function timesExcludingGcalEvents(gcalEvents, earliestTime, latestTime, dates) {
+	const timestamps = getIncrementedTimestamps(earliestTime, latestTime);
+	const times = [];
+	// console.log('gcalEvents', dates, gcalEvents[0]);
+	const jsDates = dates?.map((date) => parse(date, 'yyyy-MM-dd', new Date()));
+	for (const date of jsDates) {
+		for (const timestamp of timestamps) {
+			const timestampDate = new Date(applyTimestampToDate(date, timestamp));
+			const conflict = gcalEvents.find((event) => {
+				const startDate = new Date(event.start.dateTime);
+				const endDate = new Date(event.end.dateTime);
+				// console.log(
+				// 	'startDate, endDate',
+				// 	timestampDate,
+				// 	timestampDate.getTime() >= startDate.getTime(),
+				// 	timestampDate.getTime() < endDate.getTime()
+				// );
+				// console.log('startDate, endDate', startDate, endDate);
+				return (
+					timestampDate.getTime() >= startDate.getTime() &&
+					timestampDate.getTime() < endDate.getTime()
+				);
+			});
+
+			// console.log('conflict', conflict);
+
+			if (!conflict) {
+				times.push(timestampDate);
+			}
+		}
+	}
+
+	return times;
 }

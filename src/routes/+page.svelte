@@ -12,8 +12,9 @@
 	let latestTime: string = '1700';
 	let selectedDates = [];
 
+	$: console.log('selectedDates', selectedDates);
+
 	const createEvent = async () => {
-		console.log('create event');
 		const { data, error } = await supabase
 			.from('event')
 			.insert([

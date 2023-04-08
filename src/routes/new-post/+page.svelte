@@ -15,9 +15,7 @@
 			.insert([{ name, content, user_id: $page.data.session?.user?.id }])
 			.select('*');
 		if (error) {
-			console.log('error', error);
 		} else {
-			console.log('data', data);
 			goto('/posts');
 		}
 	};

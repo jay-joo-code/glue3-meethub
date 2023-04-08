@@ -4,6 +4,7 @@
 	import { invalidate } from '$app/navigation';
 	import { onMount } from 'svelte';
 	import { SvelteToast } from '@zerodevx/svelte-toast';
+	import { page } from '$app/stores';
 
 	onMount(() => {
 		const {
@@ -29,6 +30,8 @@
 			'--toastWidth': 'auto'
 		}
 	};
+
+	$: console.log('$page', $page.data.session);
 </script>
 
 <div class="toast-styles">

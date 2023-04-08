@@ -2,37 +2,50 @@
 	import { invalidateAll } from '$app/navigation';
 	import { page } from '$app/stores';
 	import CalendarWeek from '$lib/components/CalendarWeek.svelte';
+	import CopyLink from '$lib/components/CopyLink.svelte';
+	import Checkbox from '$lib/components/glue/Checkbox.svelte';
 	import PageContainer from '$lib/components/glue/PageContainer.svelte';
 	import TextInput from '$lib/components/glue/TextInput.svelte';
 	import { supabase } from '$lib/glue/supabaseClient';
-	import IconLink from '$lib/icons/glue/IconLink.svelte';
 	import { entryConfig } from '$lib/stores/entry';
-	import { toast } from '@zerodevx/svelte-toast';
+	import {
+		eventIdsToEvents,
+		fetchCalendarList,
+		fetchEventsByCalendarIds,
+		findCalendar,
+		timeMaxOfEvent,
+		timeMinOfEvent
+	} from '$lib/util/gcal';
+	import { timesExcludingGcalEvents } from '$lib/util/timestamps';
+	import { format, parse } from 'date-fns';
 
-	let linkInput;
+	// loading states
+	let manualSignInLoading = false;
+	let isAutofillStartLoading = false;
+	let isFetchEventsLoading = false;
+	let isConfirmLoading = false;
+
+	// states
 	let entry;
 	let myAvailability = new Set();
-	let signInLoading = false;
 	let manualName = '';
+	let selectedCalendarIds = [];
+	let autofillStep: 'select' | 'confirm' = 'select';
+	let calendars = [];
+	let eventsByCalendar = [];
+	let selectedEventIds = [];
+	let myAvailabilityMethod: 'manual' | 'gcal' | 'unset' = 'unset';
 
+	// derived variables
 	$: event = $page?.data?.event;
 	$: groupEntries = $page?.data?.groupEntries;
 	$: entryId = $entryConfig[event?.hash_id];
-	$: myAvailabilityMethod = entry ? entry?.variant : 'unset';
-	$: {
-		(async () => {
-			fetchEntry(entryId);
-		})();
-	}
 
-	const copyLink = () => {
-		linkInput.select();
-		document.execCommand('copy');
-		toast.push('✅ Link copied to clipboard');
-	};
+	// reactive functions
+	$: fetchEntry(entryId);
 
-	const handleSignIn = async () => {
-		signInLoading = true;
+	const manualSignIn = async () => {
+		manualSignInLoading = true;
 
 		let targetEntry;
 		const { data: existingEntry } = await supabase
@@ -45,7 +58,7 @@
 		if (!existingEntry) {
 			const { data } = await supabase
 				.from('entry')
-				.upsert([{ variant: 'manual', name: manualName, event_id: event?.id }])
+				.insert([{ name: manualName, event_id: event?.id }])
 				.select('*')
 				.single();
 
@@ -56,32 +69,115 @@
 
 		if (targetEntry) {
 			$entryConfig = { ...$entryConfig, [event?.hash_id]: targetEntry?.id };
-			myAvailabilityMethod = targetEntry?.variant;
 			myAvailability = new Set(targetEntry.times);
 		}
 
-		signInLoading = false;
+		manualSignInLoading = false;
 	};
 
 	const fetchEntry = async (entryId) => {
-		let { data } = await supabase.from('entry').select('*').eq('id', entryId).single();
-		entry = data;
-		myAvailabilityMethod = data?.variant;
-		myAvailability = new Set(data?.times?.map((time) => new Date(time)?.toISOString()));
+		if (entryId) {
+			let { data } = await supabase.from('entry').select('*').eq('id', entryId).single();
+
+			if (data) {
+				entry = data;
+				myAvailability = new Set(data?.times?.map((time) => new Date(time)?.toISOString()));
+				myAvailabilityMethod = 'manual';
+			}
+		}
+	};
+
+	const saveEntry = async (times) => {
+		await supabase
+			.from('entry')
+			.update({ times: Array.from(times) })
+			.eq('id', entryId);
+		invalidateAll();
 	};
 
 	const signOut = () => {
 		delete $entryConfig[event?.hash_id];
 		$entryConfig = { ...$entryConfig };
+		entry = null;
 		myAvailability = new Set();
+		myAvailabilityMethod = 'unset';
 	};
 
-	const saveEntry = async (dates) => {
-		await supabase
+	async function signInWithGoogle() {
+		await supabase.auth.signInWithOAuth({
+			provider: 'google',
+			options: {
+				queryParams: {
+					access_type: 'offline',
+					prompt: 'consent'
+				},
+				redirectTo: window.location.href,
+				scopes: 'https://www.googleapis.com/auth/calendar.readonly'
+			}
+		});
+	}
+
+	const handleAutofillClick = async () => {
+		if ($page.data.session) {
+			isAutofillStartLoading = true;
+			calendars = await fetchCalendarList($page.data.session);
+			selectedCalendarIds = calendars
+				?.filter((calendar) => calendar?.selected)
+				?.map((calendar) => calendar?.id);
+			myAvailabilityMethod = 'gcal';
+			isAutofillStartLoading = false;
+		} else {
+			signInWithGoogle();
+		}
+	};
+
+	const fetchAutofillEvents = async () => {
+		isFetchEventsLoading = true;
+		eventsByCalendar = await fetchEventsByCalendarIds(
+			$page.data.session,
+			selectedCalendarIds,
+			timeMinOfEvent(event),
+			timeMaxOfEvent(event)
+		);
+		autofillStep = 'confirm';
+		let newSelectedEventIds = [];
+		eventsByCalendar?.forEach((calendar) =>
+			calendar?.events?.forEach((event) => newSelectedEventIds?.push(event?.id))
+		);
+		selectedEventIds = newSelectedEventIds;
+		isFetchEventsLoading = false;
+	};
+
+	const handleAutofill = async () => {
+		isConfirmLoading = true;
+
+		const gcalEvents = eventIdsToEvents(selectedEventIds, eventsByCalendar);
+		const times = timesExcludingGcalEvents(
+			gcalEvents,
+			event?.earliest_time,
+			event?.latest_time,
+			event?.dates
+		);
+
+		const { data } = await supabase
 			.from('entry')
-			.update({ times: Array.from(dates) })
-			.eq('id', entryId);
-		invalidateAll();
+			.insert([
+				{
+					name: $page.data.session?.user?.user_metadata?.name,
+					event_id: event?.id,
+					times
+				}
+			])
+			.select('*')
+			.single();
+
+		if (data) {
+			$entryConfig = { ...$entryConfig, [event?.hash_id]: data?.id };
+			myAvailability = new Set(data.times);
+			myAvailabilityMethod = 'manual';
+		}
+
+		isConfirmLoading = false;
 	};
 </script>
 
@@ -92,21 +188,7 @@
 			<div class="mt-6 w-full md:mt-0 md:w-1/2 md:pr-4 lg:pr-6">
 				<h1 class="text-3xl font-extrabold md:text-4xl">{event?.name}</h1>
 
-				<!-- event link -->
-				<div class="form-control mt-4 w-5/6">
-					<button on:click={copyLink}>
-						<label class="input-group-sm input-group cursor-pointer">
-							<span class="bg-base-300 px-2 text-lg"><IconLink /></span>
-							<input
-								bind:this={linkInput}
-								type="text"
-								class="input-bordered input input-sm w-full cursor-pointer"
-								value={`https://when2meet.vercel.app/event/${event?.hash_id}`}
-								readonly
-							/>
-						</label>
-					</button>
-				</div>
+				<CopyLink href="https://when2meet.vercel.app/event/{event?.hash_id}" />
 
 				<!-- my availability -->
 				<div class="mt-12 flex items-center ">
@@ -120,8 +202,11 @@
 
 				<div class="">
 					{#if myAvailabilityMethod === 'unset'}
-						<div class="mt-6 w-[240px]">
-							<button class="btn-primary btn-block btn">Autofill with Google Calendar</button>
+						<div class="mt-6 w-[280px]">
+							<button
+								class="btn-primary btn-block btn {isAutofillStartLoading && 'loading'}"
+								on:click={handleAutofillClick}>Autofill with Google Calendar</button
+							>
 							<div class="divider">OR</div>
 							<button
 								class="btn-block btn"
@@ -143,8 +228,8 @@
 										bind:value={manualName}
 									/>
 									<button
-										class="btn-primary btn-sm btn {signInLoading ? 'loading' : ''}"
-										on:click={handleSignIn}>Sign in</button
+										class="btn-primary btn-sm btn {manualSignInLoading ? 'loading' : ''}"
+										on:click={manualSignIn}>Sign in</button
 									>
 								</div>
 							</div>
@@ -152,13 +237,110 @@
 							<div class="mt-6">
 								<CalendarWeek
 									dates={event?.dates
-										?.map((day) => new Date(day))
+										?.map((day) => parse(day, 'yyyy-MM-dd', new Date()))
 										?.sort((a, b) => a.getTime() - b.getTime())}
 									earliestTime={event?.earliest_time}
 									latestTime={event?.latest_time}
 									bind:selected={myAvailability}
 									onEndDrag={saveEntry}
 								/>
+							</div>
+						{/if}
+					{:else if myAvailabilityMethod === 'gcal'}
+						{#if autofillStep === 'select'}
+							<p class="mt-6 text-lg font-bold">Select calendars to autofill with</p>
+							<div class="mt-3 space-y-0.5">
+								{#each calendars as calendar}
+									<div class="flex items-center space-x-2">
+										<div class="inline">
+											<Checkbox
+												class="checkbox-sm"
+												label={calendar?.summary}
+												checked={selectedCalendarIds?.includes(calendar?.id)}
+												on:change={(event) => {
+													if (event.target.checked) {
+														selectedCalendarIds = [...selectedCalendarIds, calendar?.id];
+													} else {
+														selectedCalendarIds = selectedCalendarIds.filter(
+															(id) => id !== calendar?.id
+														);
+													}
+												}}
+											/>
+										</div>
+										<div
+											style="background-color: {calendar.backgroundColor}"
+											class="h-3 w-3 rounded-full"
+										/>
+									</div>
+								{/each}
+							</div>
+							<button
+								class="btn-primary btn mt-3 {isFetchEventsLoading && 'loading'}"
+								on:click={fetchAutofillEvents}>Next</button
+							>
+						{:else if autofillStep === 'confirm'}
+							<p class="mt-6 text-lg font-bold">Confirm events to autofill with</p>
+							<div class="mt-3">
+								<div class="space-y-3">
+									{#each eventsByCalendar as calendar}
+										<div class="">
+											<div class="flex items-center space-x-2">
+												<p class="text-sm font-medium">
+													{findCalendar(calendar?.calendarId, calendars).summary}
+												</p>
+												<div
+													style="background-color: {findCalendar(calendar?.calendarId, calendars)
+														.backgroundColor}"
+													class="h-3 w-3 rounded-full"
+												/>
+											</div>
+											{#if calendar?.events?.length === 0}
+												<p class="mt-0.5 text-xs text-base-content/70">
+													No events in the relevant date range
+												</p>
+											{:else}
+												<div class="mt-1">
+													{#each calendar?.events as event}
+														<div class="flex items-center">
+															<div class="inline">
+																<Checkbox
+																	class="checkbox-xs"
+																	label={event?.summary}
+																	checked={selectedEventIds?.includes(event?.id)}
+																	on:change={(changeEvent) => {
+																		if (changeEvent.target.checked) {
+																			selectedEventIds = [...selectedEventIds, event?.id];
+																		} else {
+																			selectedEventIds = selectedEventIds.filter(
+																				(id) => id !== event?.id
+																			);
+																		}
+																	}}
+																/>
+															</div>
+															<p class="ml-2 text-xs text-base-content/70">
+																{format(new Date(event?.start?.dateTime), 'MMM dd iii, hh:mma')} - {format(
+																	new Date(event?.end?.dateTime),
+																	'hh:mma'
+																)}
+															</p>
+														</div>
+													{/each}
+												</div>
+											{/if}
+										</div>
+									{/each}
+								</div>
+								<div class="mt-4 flex space-x-1">
+									<button class="btn-primary btn" on:click={handleAutofill}>Autofill</button>
+									<button
+										class="btn-ghost btn"
+										on:click={() => {
+											autofillStep = 'select';
+										}}>Back</button
+									>
+								</div>
 							</div>
 						{/if}
 					{/if}
@@ -171,7 +353,7 @@
 				<div class="mt-6">
 					<CalendarWeek
 						dates={event?.dates
-							?.map((day) => new Date(day))
+							?.map((day) => parse(day, 'yyyy-MM-dd', new Date()))
 							?.sort((a, b) => a.getTime() - b.getTime())}
 						earliestTime={event?.earliest_time}
 						latestTime={event?.latest_time}
