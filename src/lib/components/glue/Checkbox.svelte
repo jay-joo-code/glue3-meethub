@@ -10,7 +10,7 @@
 </script>
 
 <div class="form-control w-full">
-	<label class="label cursor-pointer justify-start space-x-3">
+	<label class="label cursor-pointer justify-start space-x-3 px-0 py-0.5">
 		<input
 			bind:checked
 			on:blur

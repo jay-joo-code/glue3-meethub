@@ -34,7 +34,6 @@
 			email,
 			password
 		});
-		console.log('data, error', data, error);
 
 		if (error) {
 			authError = error;
@@ -48,7 +47,6 @@
 			email,
 			password
 		});
-		console.log('data, error', data, error);
 
 		if (error) {
 			authError = error;
