@@ -30,8 +30,6 @@
 			'--toastWidth': 'auto'
 		}
 	};
-
-	$: console.log('$page', $page.data.session);
 </script>
 
 <div class="toast-styles">
