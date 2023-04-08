@@ -1,4 +1,5 @@
-import { add, formatRFC3339, max, min, sub } from 'date-fns';
+import { add, formatRFC3339, max, min, parse, sub } from 'date-fns';
+import { applyTimestampToDate } from './timestamps';
 
 export const fetchAllEvents = async (session) => {
 	const response = await fetch('https://www.googleapis.com/calendar/v3/calendars/primary/events', {
@@ -42,13 +43,15 @@ export const fetchEventsByCalendarIds = async (session, calendarIds, timeMin, ti
 };
 
 export const timeMaxOfEvent = (event) => {
-	const maxDate = add(max(event?.dates?.map((date) => new Date(date))), { days: 1 });
-	return formatRFC3339(maxDate);
+	const maxDate = max(event?.dates?.map((date) => parse(date, 'yyyy-MM-dd', new Date())));
+	const maxDatetime = applyTimestampToDate(maxDate, event?.latest_time);
+	return formatRFC3339(maxDatetime);
 };
 
 export const timeMinOfEvent = (event) => {
-	const minDate = sub(min(event?.dates?.map((date) => new Date(date))), { days: 1 });
-	return formatRFC3339(minDate);
+	const minDate = min(event?.dates?.map((date) => parse(date, 'yyyy-MM-dd', new Date())));
+	const minDatetime = applyTimestampToDate(minDate, event?.earliest_time);
+	return formatRFC3339(minDatetime);
 };
 
 export const findCalendar = (calendarId, calendarList) => {

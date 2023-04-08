@@ -92,7 +92,7 @@
 					return 'bg-base-100';
 				}
 			} else if (selected.has(applyTimestampToDate(day, timestamp).toISOString())) {
-				return 'bg-primary/70';
+				return 'bg-primary';
 			}
 			return '';
 		} else {
